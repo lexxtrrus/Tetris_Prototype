@@ -22,21 +22,38 @@ public class GameController : MonoBehaviour
     private int _score = 0;
     private int _countOfDeleatedLines;
 
+    public Action checkAllChildren;
 
-    void Start()
+    private static GameController _instance;
+    public static GameController Instance
     {
+        get
+        {
+            if (_instance == null) _instance = new GameController();
+            return _instance;
+        }
+    }
+
+
+
+    void Awake()
+    {
+        _instance = this;
+
         _coordXYFigures = new Transform[10, 25];
 
         int _randomCurFigure = UnityEngine.Random.Range(0, 7);
         _currentFigure = Instantiate<GameObject>(_figurePrefabs[_randomCurFigure]);
 
+        int random = UnityEngine.Random.Range(2, 7);
+
         if (_currentFigure.tag == "NeedCorrectPosition")
         {
-            _currentFigure.transform.position = new Vector3(4.5f, 20.5f, 0f);
+            _currentFigure.transform.position = new Vector3(random + 0.5f, 20.5f, 0f);
         }
         else
         {
-            _currentFigure.transform.position = new Vector3(5f, 20f, 0);
+            _currentFigure.transform.position = new Vector3(random, 21f, 0);
         }
 
         _coordsCurrentFigure = new Transform[_currentFigure.transform.childCount];
@@ -53,7 +70,7 @@ public class GameController : MonoBehaviour
 
     void Update()
     {      
-        if(Time.time - _beginTime >= 0.5f)
+        if(Time.time - _beginTime >= 0.3f)
         {
             _isMovingDown = true;
             _beginTime = Time.time;
@@ -111,6 +128,19 @@ public class GameController : MonoBehaviour
         }
     }
 
+    private void GameOver()
+    {
+        foreach(Transform _t in _coordsCurrentFigure)
+        {
+            if(_t.transform.position.y > 19)
+            {
+                Debug.Log("GAME OVER!");
+                this.gameObject.SetActive(false);
+                break;
+            }
+        }
+    }
+
     private void MoveFigureHorizontal(float _x)
     {
         _currentFigure.transform.position += new Vector3(_x, 0f, 0f);
@@ -144,8 +174,9 @@ public class GameController : MonoBehaviour
 
     private void SetCurrentFigure(GameObject _figure)
     {
+        GameOver();
         AddCoordinates(); // прежде чем заменить текущую фигуру на новую, надо добавить координаты кубиков в общий список занятых координат
-
+        checkAllChildren();
         CheckLines();
 
         if (_countOfDeleatedLines == 1) { _score += 100;}
@@ -156,13 +187,15 @@ public class GameController : MonoBehaviour
         _highScoreCount.text = "POINTS: " + _score;
         _countOfDeleatedLines = 0;
 
+        int random = UnityEngine.Random.Range(2, 7);
+
         if (_figure.tag == "NeedCorrectPosition")
         {
-            _figure.transform.position = new Vector3(4.5f, 20.5f, 0f);
+            _figure.transform.position = new Vector3(random+ 0.5f, 20.5f, 0f);
         }
         else
         {
-            _figure.transform.position = new Vector3(5f, 20f, 0);
+            _figure.transform.position = new Vector3(random, 21f, 0);
         }
 
         _currentFigure = _figure;
@@ -175,6 +208,9 @@ public class GameController : MonoBehaviour
         }
 
         _nextFigure = ShowNextFigure();
+
+
+        
     }
 
     private GameObject ShowNextFigure()
@@ -197,11 +233,23 @@ public class GameController : MonoBehaviour
 
     private void CheckLines()
     {
+        List<int> _lineHaveToDelete = new List<int>();
+
         //я хер его знает как организовать грамотное удаление 4-х строк, надо подумать
         for (int y = 0; y < 20; y++)
         {
-            if (CheckLine(y)) DeleteLine(y);
+            if (CheckLine(y)) _lineHaveToDelete.Add(y);
         }
+
+        int _lines = _lineHaveToDelete.Count;
+
+        if(_lines > 0)
+        {
+            for (int y = _lineHaveToDelete.Count - 1; y >= 0; y--)
+            {
+                DeleteLine(y);
+            }
+        }        
     }
 
     private void DeleteLine(int y)
