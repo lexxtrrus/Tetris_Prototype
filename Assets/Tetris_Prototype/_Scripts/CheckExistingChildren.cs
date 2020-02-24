@@ -16,7 +16,7 @@ public class CheckExistingChildren : MonoBehaviour
     {
         _childCount = this.gameObject.transform.childCount;
 
-        if (_childCount == 0)
+        if (_childCount <= 0)
         {
             Destroy(this.gameObject);
         }

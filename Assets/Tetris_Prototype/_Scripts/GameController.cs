@@ -9,6 +9,7 @@ public class GameController : MonoBehaviour
     [Header("Set in Inspector")]
     [SerializeField] private List<GameObject> _figurePrefabs;
     [SerializeField] private Text _highScoreCount;
+    [SerializeField] private Button exit;
 
     [Header("Set Dynamically")]
     [SerializeField] private GameObject _currentFigure;
@@ -124,6 +125,10 @@ public class GameController : MonoBehaviour
                 _currentFigure.transform.position += Vector3.up;
                 SetCurrentFigure(_nextFigure);
                 break;
+            }
+            else
+            {
+                return;
             }
         }
     }
